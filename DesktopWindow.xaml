@@ -1,0 +1,84 @@
+<Window x:Class="CountdownDays.DesktopWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="桌面倒计日"
+        Height="260"
+        MinHeight="200"
+        MinWidth="560"
+        WindowStartupLocation="Manual"
+        ShowInTaskbar="False"
+        ResizeMode="CanResize"
+        Background="#00000000"
+        AllowsTransparency="True"
+        Topmost="True"
+        WindowStyle="None"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown"
+        SizeChanged="Window_SizeChanged">
+    <Window.Resources>
+        <SolidColorBrush x:Key="CountdownForegroundBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="CountdownAccentBrush" Color="#C0FF9C"/>
+    </Window.Resources>
+    <Border x:Name="RootBorder" CornerRadius="16" Padding="20"
+            Background="#A6000000" BorderBrush="#33FFFFFF" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock x:Name="TitleText"
+                       Grid.Row="0"
+                       FontSize="18"
+                       Foreground="{DynamicResource CountdownForegroundBrush}"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       HorizontalAlignment="Stretch"
+                       Margin="0,4,0,8"/>
+
+            <Border x:Name="Card" Grid.Row="1" CornerRadius="14"
+                    Background="#22000000"
+                    BorderBrush="#33FFFFFF" BorderThickness="1"
+                    Padding="8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" MinWidth="120"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="2*" MinWidth="200"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Viewbox Grid.Column="0" StretchDirection="DownOnly" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,0">
+                        <TextBlock x:Name="DaysNumberText"
+                                   FontSize="120" FontWeight="Bold"
+                                   Foreground="{DynamicResource CountdownForegroundBrush}"
+                                   Text="0"/>
+                    </Viewbox>
+
+                    <Border Grid.Column="1" Width="1" Background="#22FFFFFF" Margin="0,2"/>
+
+                    <StackPanel Grid.Column="2" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="8,0,0,2">
+                        <Viewbox StretchDirection="DownOnly" HorizontalAlignment="Left">
+                            <TextBlock x:Name="TimeText"
+                                       FontSize="44" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource CountdownForegroundBrush}"
+                                       Text="00:00:00"/>
+                        </Viewbox>
+                        <TextBlock x:Name="DaysUnitText"
+                                   FontSize="13"
+                                   Foreground="{DynamicResource CountdownAccentBrush}"
+                                   HorizontalAlignment="Right"
+                                   Text="天"/>
+                        <TextBlock x:Name="TimeUnitText"
+                                   FontSize="13"
+                                   Foreground="{DynamicResource CountdownAccentBrush}"
+                                   HorizontalAlignment="Right"
+                                   Margin="0,2,0,0"
+                                   Text="时:分:秒"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

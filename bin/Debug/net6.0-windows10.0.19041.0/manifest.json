@@ -1,0 +1,12 @@
+{
+  "Id": "com.icc.countdown-days",
+  "Name": "桌面倒计日",
+  "Version": "1.0.0",
+  "Description": "桌面倒计时与纪念日小工具，支持多个目标、临近提醒、可拖动悬浮",
+  "Author": "ICC-CE",
+  "EntranceAssembly": "CountdownDays.dll",
+  "ApiVersion": "1.0.0",
+  "Url": "https://github.com/InkCanvasForClass/community",
+  "Permissions": ["Notifications"],
+  "Dependencies": []
+}
