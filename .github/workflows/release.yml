@@ -29,6 +29,30 @@ jobs:
         with:
           dotnet-version: '6.0.x'
 
+      - name: Fetch PluginSdk DLL
+        shell: pwsh
+        run: |
+          $sdkDest = "CountdownDays/lib/InkCanvas.PluginSdk.dll"
+          if (Test-Path $sdkDest) { exit 0 }
+          $candidateUrls = @(
+            "https://raw.githubusercontent.com/InkCanvasForClass/community/main/InkCanvas.PluginSdk/bin/Release/net6.0-windows10.0.19041.0/InkCanvas.PluginSdk.dll",
+            "https://raw.githubusercontent.com/InkCanvasForClass/community/master/InkCanvas.PluginSdk/bin/Release/net6.0-windows10.0.19041.0/InkCanvas.PluginSdk.dll"
+          )
+          foreach ($u in $candidateUrls) {
+            try {
+              Write-Host "Try $u"
+              Invoke-WebRequest -Uri $u -OutFile $sdkDest -UseBasicParsing -ErrorAction Stop
+              if ((Get-Item $sdkDest).Length -gt 0) {
+                Write-Host "Got SDK from $u"
+                exit 0
+              }
+            } catch {
+              Write-Host "Failed: $($_.Exception.Message)"
+            }
+          }
+          Write-Error "Failed to fetch InkCanvas.PluginSdk.dll"
+          exit 1
+
       - name: Restore + Publish
         shell: pwsh
         run: |
