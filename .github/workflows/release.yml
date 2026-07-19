@@ -18,140 +18,101 @@ jobs:
       contents: write
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
     steps:
-      - name: Checkout plugin
-        uses: actions/checkout@v6.0.2
-        with:
-          path: CountdownDays
+    - name: Checkout plugin
+      uses: actions/checkout@v6.0.2
+      with:
+        path: CountdownDays
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5.2.0
-        with:
-          dotnet-version: '6.0.x'
+    - name: Checkout SDK
+      uses: actions/checkout@v6.0.2
+      with:
+        repository: InkCanvasForClass/community
+        path: community
 
-      - name: Fetch PluginSdk DLL
-        shell: pwsh
-        run: |
-          $sdkDest = "CountdownDays/lib/InkCanvas.PluginSdk.dll"
-          if (Test-Path $sdkDest) { exit 0 }
-          $candidateUrls = @(
-            "https://raw.githubusercontent.com/InkCanvasForClass/community/main/InkCanvas.PluginSdk/bin/Release/net6.0-windows10.0.19041.0/InkCanvas.PluginSdk.dll",
-            "https://raw.githubusercontent.com/InkCanvasForClass/community/master/InkCanvas.PluginSdk/bin/Release/net6.0-windows10.0.19041.0/InkCanvas.PluginSdk.dll"
-          )
-          foreach ($u in $candidateUrls) {
-            try {
-              Write-Host "Try $u"
-              Invoke-WebRequest -Uri $u -OutFile $sdkDest -UseBasicParsing -ErrorAction Stop
-              if ((Get-Item $sdkDest).Length -gt 0) {
-                Write-Host "Got SDK from $u"
-                exit 0
-              }
-            } catch {
-              Write-Host "Failed: $($_.Exception.Message)"
-            }
-          }
-          Write-Error "Failed to fetch InkCanvas.PluginSdk.dll"
-          exit 1
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5.2.0
+      with:
+        dotnet-version: '6.0.x'
 
-      - name: Restore + Publish
-        shell: pwsh
-        run: |
-          dotnet restore CountdownDays/CountdownDays.csproj
-          dotnet publish CountdownDays/CountdownDays.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=false -p:PublishReadyToRun=false -o CountdownDays/publish
+    - name: Copy SDK DLLs
+      shell: pwsh
+      run: |
+        $framework = "net6.0-windows10.0.19041.0"
+        $sdkSrc = "community/InkCanvas.PluginSdk/bin/Release/$framework/InkCanvas.PluginSdk.dll"
+        if (Test-Path $sdkSrc) {
+          Copy-Item $sdkSrc "CountdownDays/lib/" -Force
+        }
 
-      - name: Package .icpx
-        id: package
-        shell: pwsh
-        run: |
-          $outputDir = "CountdownDays/publish"
-          $manifest = Get-Content "$outputDir/manifest.json" -Raw | ConvertFrom-Json
-          $pluginId = $manifest.Id
-          $entry = $manifest.EntranceAssembly
-          $depsFile = ($entry -replace '\.dll$', '.deps.json')
+    - name: Restore
+      run: dotnet restore CountdownDays/CountdownDays.csproj
 
-          $workDir = Join-Path $env:TEMP "icpx_build"
-          if (Test-Path $workDir) { Remove-Item $workDir -Recurse -Force }
-          New-Item -ItemType Directory -Path $workDir | Out-Null
+    - name: Build
+      run: dotnet build CountdownDays/CountdownDays.csproj --configuration Release --no-restore
 
-          Copy-Item "$outputDir/manifest.json" $workDir
-          Copy-Item "$outputDir/$entry" $workDir
-          if (Test-Path "$outputDir/$depsFile") { Copy-Item "$outputDir/$depsFile" $workDir }
+    - name: Package .icpx
+      id: package
+      shell: pwsh
+      run: |
+        $outputDir = "CountdownDays/bin/Release/net6.0-windows10.0.19041.0"
+        $manifest = Get-Content "$outputDir/manifest.json" | ConvertFrom-Json
+        $pluginId = $manifest.Id
 
-          $icon = Get-ChildItem -Path $outputDir -Filter "icon.*" -ErrorAction SilentlyContinue | Select-Object -First 1
-          if ($icon) { Copy-Item $icon.FullName $workDir }
+        $tempDir = Join-Path $env:TEMP "icpx_$pluginId"
+        if (Test-Path $tempDir) { Remove-Item $tempDir -Recurse -Force }
+        New-Item -ItemType Directory -Path $tempDir | Out-Null
 
-          $pluginFolder = Join-Path $workDir $pluginId
-          New-Item -ItemType Directory -Path $pluginFolder | Out-Null
-          Get-ChildItem $workDir -File | ForEach-Object {
-            Move-Item $_.FullName $pluginFolder
-          }
+        foreach ($f in @("manifest.json", $manifest.EntranceAssembly, "$($manifest.EntranceAssembly -replace '\.dll$','.deps.json')")) {
+          $src = Join-Path $outputDir $f
+          if (Test-Path $src) { Copy-Item $src $tempDir }
+        }
 
-          $outDir = "CountdownDays/packages"
-          New-Item -ItemType Directory -Path $outDir -Force | Out-Null
-          $version = $manifest.Version
-          $icpxName = "$pluginId-$version.icpx"
-          $icpxPath = Join-Path $outDir $icpxName
-          Get-ChildItem $pluginFolder -Recurse | Compress-Archive -DestinationPath $icpxPath -Force
-          if (Test-Path $workDir) { Remove-Item $workDir -Recurse -Force }
-          "icpx=$icpxPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        $outDir = "CountdownDays/packages"
+        New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+        $zipPath = "$outDir/$pluginId.zip"
+        $icpxPath = "$outDir/$pluginId.icpx"
+        Compress-Archive -Path "$tempDir/*" -DestinationPath $zipPath -Force
+        if (Test-Path $icpxPath) { Remove-Item $icpxPath }
+        Move-Item $zipPath $icpxPath -Force
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v5
-        with:
-          name: com.icc.countdown-days
-          path: ${{ steps.package.outputs.icpx }}
-          if-no-files-found: error
+        $hash = (Get-FileHash $icpxPath -Algorithm SHA256).Hash.ToLower()
+        echo "icpx_path=$icpxPath" >> $env:GITHUB_OUTPUT
+        echo "plugin_id=$pluginId" >> $env:GITHUB_OUTPUT
+        echo "sha256=$hash" >> $env:GITHUB_OUTPUT
+        echo "version=$($manifest.Version)" >> $env:GITHUB_OUTPUT
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          generate_release_notes: true
-          files: |
-            ${{ steps.package.outputs.icpx }}
+    - name: Get tag
+      id: tag
+      shell: bash
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+        else
+          echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        fi
 
-  emit-market-yaml:
-    runs-on: ubuntu-latest
-    needs: release
-    steps:
-      - name: Checkout plugin
-        uses: actions/checkout@v6.0.2
-        with:
-          path: CountdownDays
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.tag.outputs.tag }}
+        name: ${{ steps.tag.outputs.tag }}
+        body: |
+          ## ${{ steps.package.outputs.plugin_id }} v${{ steps.package.outputs.version }}
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5.2.0
-        with:
-          dotnet-version: '6.0.x'
+          桌面倒计日插件 - ICC-CE 插件市场
 
-      - name: Generate PluginIndex YAML
-        shell: bash
-        run: |
-          cat <<'EOF' > /tmp/plugin.yml
-          id: com.icc.countdown-days
-          name: 桌面倒计日
-          version: __VERSION__
-          description: 桌面倒计时与纪念日小工具，支持多个目标、临近提醒、可拖动悬浮
-          author: ICC-CE
-          entranceAssembly: CountdownDays.dll
-          url: https://github.com/CJKmkp/CountdownDays
-          repoOwner: CJKmkp
-          repoName: CountdownDays
-          downloadPath: releases/download/__TAG__/com.icc.countdown-days-__VERSION__.icpx
-          iconPath: ""
-          EOF
+          ### 安装方法
+          1. 下载下方的 `.icpx` 文件
+          2. 将其放入 ICC-CE 的 `PluginPackages/` 目录
+          3. 重启 ICC-CE 即可自动安装
 
-          VERSION=$(jq -r .Version CountdownDays/publish/manifest.json)
-          TAG="${GITHUB_REF_NAME:-v$VERSION}"
-          sed -i "s|__VERSION__|$VERSION|g; s|__TAG__|$TAG|g" /tmp/plugin.yml
-
-          mkdir -p market
-          cp /tmp/plugin.yml market/com.icc.countdown-days.yml
-
-      - name: Upload PluginIndex YAML
-        uses: actions/upload-artifact@v5
-        with:
-          name: plugin-market-yaml
-          path: market/com.icc.countdown-days.yml
-          if-no-files-found: error
+          ### 校验信息
+          ```
+          SHA256: ${{ steps.package.outputs.sha256 }}
+          ```
+        files: ${{ steps.package.outputs.icpx_path }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
