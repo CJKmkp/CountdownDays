@@ -30,15 +30,10 @@ jobs:
           dotnet-version: '6.0.x'
 
       - name: Restore + Publish
+        shell: pwsh
         run: |
           dotnet restore CountdownDays/CountdownDays.csproj
-          dotnet publish CountdownDays/CountdownDays.csproj \
-            -c Release \
-            -r win-x64 \
-            --self-contained false \
-            -p:PublishSingleFile=false \
-            -p:PublishReadyToRun=false \
-            -o CountdownDays/publish
+          dotnet publish CountdownDays/CountdownDays.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=false -p:PublishReadyToRun=false -o CountdownDays/publish
 
       - name: Package .icpx
         id: package
