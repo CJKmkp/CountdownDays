@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "WTpXITqnGT4=",
+  "dgSpecHash": "+V8QkB9dEWw=",
   "success": true,
-  "projectFilePath": "e:\\ICC CE\\CountdownDays\\CountdownDays.csproj",
+  "projectFilePath": "E:\\ICC CE\\CountdownDays\\CountdownDays.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Administrator\\.nuget\\packages\\inkore.ui.wpf\\1.2.8\\inkore.ui.wpf.1.2.8.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\inkore.ui.wpf.modern\\0.10.2.1\\inkore.ui.wpf.modern.0.10.2.1.nupkg.sha512",

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CountdownDays")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d17b340b34b9af8c9633102704457627748ffc54")]
 [assembly: System.Reflection.AssemblyProductAttribute("CountdownDays")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CountdownDays")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

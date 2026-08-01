@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "e:\\ICC CE\\CountdownDays\\CountdownDays.csproj": {}
+    "E:\\ICC CE\\CountdownDays\\CountdownDays.csproj": {}
   },
   "projects": {
-    "e:\\ICC CE\\CountdownDays\\CountdownDays.csproj": {
+    "E:\\ICC CE\\CountdownDays\\CountdownDays.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "e:\\ICC CE\\CountdownDays\\CountdownDays.csproj",
+        "projectUniqueName": "E:\\ICC CE\\CountdownDays\\CountdownDays.csproj",
         "projectName": "CountdownDays",
-        "projectPath": "e:\\ICC CE\\CountdownDays\\CountdownDays.csproj",
+        "projectPath": "E:\\ICC CE\\CountdownDays\\CountdownDays.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "e:\\ICC CE\\CountdownDays\\obj\\",
+        "outputPath": "E:\\ICC CE\\CountdownDays\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "E:\\Program Files\\Microsoft Visual Studio\\Shared\\NuGetPackages"
