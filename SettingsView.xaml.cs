@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using iNKORE.UI.WPF.Modern.Controls;
@@ -9,11 +10,14 @@ namespace CountdownDays
     public partial class SettingsView : UserControl
     {
         private readonly CountdownDaysPlugin _plugin;
+        private bool _isInitializing;
+        private bool _isUpdatingSelection;
 
         public SettingsView(CountdownDaysPlugin plugin)
         {
             InitializeComponent();
             _plugin = plugin;
+            _isInitializing = true;
             OpacitySlider.Value = plugin.Config.WindowOpacity > 0 ? plugin.Config.WindowOpacity : 90;
             ScaleSlider.Value = plugin.Config.UiScale > 0 ? plugin.Config.UiScale : 1.0;
             TextColorBox.Text = string.IsNullOrEmpty(plugin.Config.TextColor) ? "#FFFFFF" : plugin.Config.TextColor;
@@ -21,6 +25,14 @@ namespace CountdownDays
             UpdateColorPreview(TextColorBox.Text, TextColorPreview);
             UpdateColorPreview(AccentColorBox.Text, AccentColorPreview);
             RefreshList();
+            _isInitializing = false;
+        }
+
+        private sealed class EntryListItem
+        {
+            public string Id { get; set; }
+            public string Title { get; set; }
+            public string SubText { get; set; }
         }
 
         private static bool TryParseColor(string text, out System.Windows.Media.Color color)
@@ -79,21 +91,49 @@ namespace CountdownDays
 
         private void RefreshList()
         {
-            EntriesList.ItemsSource = _plugin.Config.Entries
-                .Select(entry => new
-                {
-                    entry.Id,
-                    Title = string.IsNullOrEmpty(entry.Title) ? "未命名目标" : entry.Title,
-                    SubText = entry.Kind == CountdownKind.Anniversary
-                        ? "纪念日 · " + CountdownCalculator.DaysUntil(entry, DateTimeOffset.Now) + " 天"
-                        : "倒计时 · " + CountdownCalculator.DaysUntil(entry, DateTimeOffset.Now) + " 天"
-                })
-                .ToList();
+            _isUpdatingSelection = true;
+            try
+            {
+                EntriesList.ItemsSource = _plugin.Config.Entries
+                    .Where(entry => entry != null && !string.IsNullOrWhiteSpace(entry.Id))
+                    .Select(entry =>
+                    {
+                        var kindPrefix = entry.Kind == CountdownKind.Anniversary
+                            ? Strings.KindPrefixAnniversary
+                            : Strings.KindPrefixCountdown;
+                        var days = CountdownCalculator.DaysUntil(entry, DateTimeOffset.Now);
+                        var subText = days < 0
+                            ? kindPrefix + Strings.Due
+                            : kindPrefix + days + " " + Strings.DaysUnit;
+                        return new EntryListItem
+                        {
+                            Id = entry.Id,
+                            Title = string.IsNullOrEmpty(entry.Title) ? Strings.Untitled : entry.Title,
+                            SubText = subText
+                        };
+                    })
+                    .ToList();
+
+                // 恢复当前选中的目标，让桌面窗口与列表选中保持一致。
+                var selected = EntriesList.Items
+                    .Cast<EntryListItem>()
+                    .FirstOrDefault(x => x.Id == _plugin.Config.SelectedEntryId);
+                if (selected != null) EntriesList.SelectedItem = selected;
+            }
+            finally
+            {
+                _isUpdatingSelection = false;
+            }
         }
 
         private void EntriesList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // 选择变化时无需额外处理，编辑/删除按钮直接读取 SelectedItem。
+            if (_isUpdatingSelection || _isInitializing) return;
+            if (EntriesList.SelectedItem is not EntryListItem item) return;
+            // 在设置页选中目标即切换桌面窗口显示，并持久化选择。
+            _plugin.Config.SelectedEntryId = item.Id;
+            _plugin.SaveConfig();
+            _plugin.Refresh();
         }
 
         private void ToggleWindowButton_Click(object sender, RoutedEventArgs e)
@@ -103,7 +143,7 @@ namespace CountdownDays
 
         private void OpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (_plugin == null) return;
+            if (_plugin == null || _isInitializing) return;
             _plugin.Config.WindowOpacity = (int)OpacitySlider.Value;
             _plugin.SaveConfig();
             _plugin.Refresh();
@@ -111,7 +151,7 @@ namespace CountdownDays
 
         private void ScaleSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (_plugin == null || ScaleSlider == null) return;
+            if (_plugin == null || _isInitializing) return;
             _plugin.Config.UiScale = Math.Round(ScaleSlider.Value, 2);
             _plugin.SaveConfig();
             _plugin.Refresh();
@@ -120,7 +160,7 @@ namespace CountdownDays
         private async void AddButton_Click(object sender, RoutedEventArgs e)
         {
             var editor = new EntryEditorControl();
-            var result = await ShowEditorDialogAsync("添加目标", editor);
+            var result = await ShowEditorDialogAsync(Strings.AddTitle, editor);
             if (result != ContentDialogResult.Primary) return;
 
             var entry = editor.Capture(Guid.NewGuid().ToString("N").Substring(0, 8));
@@ -132,14 +172,13 @@ namespace CountdownDays
 
         private async void EditButton_Click(object sender, RoutedEventArgs e)
         {
-            if (EntriesList.SelectedItem is not { } item) return;
-            var id = (string)item.GetType().GetProperty("Id")?.GetValue(item);
-            var entry = _plugin.Config.Entries.FirstOrDefault(a => a.Id == id);
+            if (EntriesList.SelectedItem is not EntryListItem item) return;
+            var entry = _plugin.Config.Entries.FirstOrDefault(a => a.Id == item.Id);
             if (entry == null) return;
 
             var editor = new EntryEditorControl();
             editor.Bind(entry);
-            var result = await ShowEditorDialogAsync("编辑目标", editor);
+            var result = await ShowEditorDialogAsync(Strings.EditTitle, editor);
             if (result != ContentDialogResult.Primary) return;
 
             var updated = editor.Capture(entry.Id);
@@ -155,17 +194,16 @@ namespace CountdownDays
 
         private async void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
-            if (EntriesList.SelectedItem is not { } item) return;
-            var id = (string)item.GetType().GetProperty("Id")?.GetValue(item);
-            var entry = _plugin.Config.Entries.FirstOrDefault(a => a.Id == id);
+            if (EntriesList.SelectedItem is not EntryListItem item) return;
+            var entry = _plugin.Config.Entries.FirstOrDefault(a => a.Id == item.Id);
             if (entry == null) return;
 
             var dialog = new ContentDialog
             {
-                Title = "确认删除",
-                Content = "确定要删除这个目标吗？",
-                PrimaryButtonText = "删除",
-                CloseButtonText = "取消",
+                Title = Strings.ConfirmDeleteTitle,
+                Content = Strings.ConfirmDeleteMessage,
+                PrimaryButtonText = Strings.Delete,
+                CloseButtonText = Strings.Cancel,
                 DefaultButton = ContentDialogButton.Close
             };
             var result = await dialog.ShowAsync();
@@ -177,22 +215,17 @@ namespace CountdownDays
             RefreshList();
         }
 
-        private async System.Threading.Tasks.Task<ContentDialogResult> ShowEditorDialogAsync(string title, EntryEditorControl editor)
+        private async Task<ContentDialogResult> ShowEditorDialogAsync(string title, EntryEditorControl editor)
         {
             var dialog = new ContentDialog
             {
                 Title = title,
                 Content = editor,
-                PrimaryButtonText = "保存",
-                CloseButtonText = "取消",
+                PrimaryButtonText = Strings.Save,
+                CloseButtonText = Strings.Cancel,
                 DefaultButton = ContentDialogButton.Primary
             };
             return await dialog.ShowAsync();
-        }
-
-        private void TrySetXamlRoot(ContentDialog dialog)
-        {
-            // iNKORE 0.10.x 的 ContentDialog 不支持 XamlRoot，留空以兼容后续版本。
         }
     }
 }

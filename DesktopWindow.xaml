@@ -3,17 +3,16 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="桌面倒计日"
         Height="260"
-        MinHeight="200"
-        MinWidth="560"
         WindowStartupLocation="Manual"
         ShowInTaskbar="False"
-        ResizeMode="CanResize"
+        ResizeMode="NoResize"
         Background="#00000000"
         AllowsTransparency="True"
         Topmost="True"
         WindowStyle="None"
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
-        SizeChanged="Window_SizeChanged">
+        IsVisibleChanged="DesktopWindow_IsVisibleChanged"
+        Closed="DesktopWindow_Closed">
     <Window.Resources>
         <SolidColorBrush x:Key="CountdownForegroundBrush" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="CountdownAccentBrush" Color="#C0FF9C"/>
@@ -32,7 +31,7 @@
                        Foreground="{DynamicResource CountdownForegroundBrush}"
                        TextAlignment="Center"
                        TextWrapping="Wrap"
-                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Center"
                        Margin="0,4,0,8"/>
 
             <Border x:Name="Card" Grid.Row="1" CornerRadius="14"

@@ -1,11 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace CountdownDays
@@ -19,14 +18,12 @@ namespace CountdownDays
         private const int WS_POPUP = unchecked((int)0x80000000);
         private const int WS_EX_TOOLWINDOW = 0x00000080;
         private const int WS_EX_APPWINDOW = 0x00040000;
-        private const int WS_EX_LAYERED = 0x00080000;
         private const int WS_VISIBLE = 0x10000000;
 
         private const uint SWP_NOSIZE = 0x0001;
         private const uint SWP_NOMOVE = 0x0002;
         private const uint SWP_NOACTIVATE = 0x0010;
         private const uint SWP_FRAMECHANGED = 0x0020;
-        private const uint SWP_NOZORDER = 0x0004;
 
         [DllImport("user32.dll")]
         private static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
@@ -40,50 +37,31 @@ namespace CountdownDays
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr FindWindowEx(IntPtr parent, IntPtr child, string className, string windowName);
 
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern IntPtr GetParent(IntPtr hWnd);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern IntPtr GetDesktopWindow();
-
         [DllImport("user32.dll")]
         private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
             int X, int Y, int cx, int cy, uint uFlags);
-
-        [DllImport("user32.dll")]
-        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
         [DllImport("user32.dll")]
         private static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam,
             uint fuFlags, uint uTimeout, out IntPtr lpdwResult);
 
         private const int HWND_BOTTOM = 1;
-        private static readonly IntPtr HWND_TOP = IntPtr.Zero;
+        // 设计基准尺寸，实际窗口尺寸 = 基准 × 缩放系数。
+        private const double LogicalWidth = 560;
+        private const double LogicalHeight = 260;
         private readonly CountdownDaysPlugin _plugin;
         private readonly DispatcherTimer _tickTimer;
-        private int _currentIndex;
-
-        public DesktopWindow()
-        {
-            InitializeComponent();
-            _plugin = null;
-            HeaderInitialize();
-            _tickTimer = new DispatcherTimer(DispatcherPriority.Background)
-            {
-                Interval = TimeSpan.FromSeconds(1)
-            };
-            _tickTimer.Tick += (_, __) => Refresh();
-            _tickTimer.Start();
-            SourceInitialized += DesktopWindow_SourceInitialized;
-            ApplyTitles();
-            Refresh();
-        }
+        private bool _positionRestored;
+        private double _appliedScale = -1;
+        private string _appliedTextColor;
+        private string _appliedAccentColor;
 
         public DesktopWindow(CountdownDaysPlugin plugin)
         {
             InitializeComponent();
             _plugin = plugin;
             HeaderInitialize();
+            ApplyTitles();
             _tickTimer = new DispatcherTimer(DispatcherPriority.Background)
             {
                 Interval = TimeSpan.FromSeconds(1)
@@ -91,7 +69,6 @@ namespace CountdownDays
             _tickTimer.Tick += (_, __) => Refresh();
             _tickTimer.Start();
             SourceInitialized += DesktopWindow_SourceInitialized;
-            ApplyTitles();
             Refresh();
         }
 
@@ -176,13 +153,13 @@ namespace CountdownDays
 
         public void ApplyConfig(CountdownConfig config)
         {
-            if (config.WindowWidth > 0) Width = config.WindowWidth;
             Opacity = Math.Max(0.4, Math.Min(1.0, config.WindowOpacity / 100.0));
             ApplyAppearance(config);
             if (!double.IsNaN(config.WindowLeft) && !double.IsNaN(config.WindowTop))
             {
                 Left = config.WindowLeft;
                 Top = config.WindowTop;
+                _positionRestored = true;
             }
             else
             {
@@ -192,45 +169,71 @@ namespace CountdownDays
 
         public void ApplyAppearance(CountdownConfig config)
         {
-            var scale = Math.Max(0.5, Math.Min(2.5, config.UiScale <= 0 ? 1.0 : config.UiScale));
-            RootBorder.LayoutTransform = new System.Windows.Media.ScaleTransform(scale, scale);
+            var scale = Math.Max(0.5, Math.Min(2.0, config.UiScale <= 0 ? 1.0 : config.UiScale));
+            if (Math.Abs(scale - _appliedScale) > 0.001)
+            {
+                ApplyScale(scale);
+                _appliedScale = scale;
+            }
 
+            if (config.TextColor != _appliedTextColor)
+            {
+                SetColorResource("CountdownForegroundBrush", config.TextColor, 0xFF, 0xFF, 0xFF);
+                _appliedTextColor = config.TextColor;
+            }
+
+            if (config.AccentColor != _appliedAccentColor)
+            {
+                SetColorResource("CountdownAccentBrush", config.AccentColor, 0xC0, 0xFF, 0x9C);
+                _appliedAccentColor = config.AccentColor;
+            }
+        }
+
+        private void ApplyScale(double scale)
+        {
+            // 窗口已加载时围绕当前中心点缩放，保证放大缩小不跑偏、不超出工作区。
+            if (IsLoaded && Width > 0)
+            {
+                var centerX = Left + Width / 2;
+                var centerY = Top + Height / 2;
+                var newWidth = LogicalWidth * scale;
+                var newHeight = LogicalHeight * scale;
+                Width = newWidth;
+                Height = newHeight;
+                Left = centerX - newWidth / 2;
+                Top = centerY - newHeight / 2;
+                ClampToWorkArea();
+            }
+            else
+            {
+                // 初始化阶段窗口尚未定位，只设尺寸，位置交给 PositionAtCenterBottom。
+                Width = LogicalWidth * scale;
+                Height = LogicalHeight * scale;
+            }
+
+            RootBorder.LayoutTransform = new ScaleTransform(scale, scale);
+        }
+
+        private void SetColorResource(string key, string colorText, byte r, byte g, byte b)
+        {
             try
             {
-                var brush = new System.Windows.Media.SolidColorBrush(
-                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(config.TextColor));
+                var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colorText));
                 brush.Freeze();
-                Resources["CountdownForegroundBrush"] = brush;
+                Resources[key] = brush;
             }
             catch
             {
-                Resources["CountdownForegroundBrush"] = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xFF, 0xFF, 0xFF));
-            }
-
-            try
-            {
-                var accent = new System.Windows.Media.SolidColorBrush(
-                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(config.AccentColor));
-                accent.Freeze();
-                Resources["CountdownAccentBrush"] = accent;
-            }
-            catch
-            {
-                Resources["CountdownAccentBrush"] = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xC0, 0xFF, 0x9C));
+                Resources[key] = new SolidColorBrush(Color.FromRgb(r, g, b));
             }
         }
 
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
-            // SourceInitialized 阶段 ActualWidth/Height 已可用，再次校正居中位置
-            var ex = GetWindowLong(new System.Windows.Interop.WindowInteropHelper(this).Handle, GWL_EXSTYLE);
-            if ((ex & WS_EX_TOOLWINDOW) == WS_EX_TOOLWINDOW)
-            {
-                var workArea = SystemParameters.WorkArea;
-                Left = workArea.Left + (workArea.Width - ActualWidth) / 2;
-                Top = workArea.Top + (workArea.Height - ActualHeight) / 2;
-            }
+            // 仅在配置里没有保存位置时才居中，避免覆盖已恢复的位置。
+            if (_positionRestored) return;
+            PositionAtCenterBottom();
         }
 
         public void CapturePosition(CountdownConfig config)
@@ -244,15 +247,39 @@ namespace CountdownDays
         private void PositionAtCenterBottom()
         {
             var workArea = SystemParameters.WorkArea;
-            Width = Math.Max(640, Width);
-            Height = Math.Max(260, Height);
             // 使用实际渲染尺寸而非 XAML Width/Height，避免 DPI / 主题导致偏差
             var actualWidth = ActualWidth > 0 ? ActualWidth : Width;
             var actualHeight = ActualHeight > 0 ? ActualHeight : Height;
             Left = workArea.Left + (workArea.Width - actualWidth) / 2;
             Top = workArea.Top + (workArea.Height - actualHeight) / 2;
+            ClampToWorkArea();
+        }
+
+        private void ClampToWorkArea()
+        {
+            var workArea = SystemParameters.WorkArea;
             if (Left < workArea.Left) Left = workArea.Left;
             if (Top < workArea.Top) Top = workArea.Top;
+            if (Left + Width > workArea.Right) Left = workArea.Right - Width;
+            if (Top + Height > workArea.Bottom) Top = workArea.Bottom - Height;
+        }
+
+        private void DesktopWindow_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            // 隐藏时停表，避免后台每秒空转。
+            if (IsVisible)
+            {
+                if (!_tickTimer.IsEnabled) _tickTimer.Start();
+            }
+            else
+            {
+                _tickTimer.Stop();
+            }
+        }
+
+        private void DesktopWindow_Closed(object sender, EventArgs e)
+        {
+            _tickTimer.Stop();
         }
 
         public void Refresh()
@@ -271,15 +298,13 @@ namespace CountdownDays
                 return;
             }
 
-            _currentIndex = Math.Max(0, Math.Min(_currentIndex, entries.Count - 1));
-            var entry = entries[_currentIndex];
             var now = DateTimeOffset.Now;
+            // 显示设置页选中的目标；未选中时默认显示最近到期的目标。
+            var entry = entries.FirstOrDefault(a => a.Id == _plugin.Config.SelectedEntryId)
+                ?? CountdownCalculator.Sort(entries, now).First();
+
             var target = CountdownCalculator.ResolveTarget(entry, now);
             var diff = target - now;
-            var days = Math.Max(0, diff.Days);
-            var hours = Math.Max(0, diff.Hours);
-            var minutes = Math.Max(0, diff.Minutes);
-            var seconds = Math.Max(0, diff.Seconds);
 
             if (entry.Kind == CountdownKind.Anniversary)
             {
@@ -290,8 +315,17 @@ namespace CountdownDays
                 TitleText.Text = string.Format(Strings.CountdownTitleFormat, target.Year, target.Month, target.Day, entry.Title);
             }
 
-            DaysNumberText.Text = days.ToString();
-            TimeText.Text = string.Format(Strings.TimeFormat, hours, minutes, seconds);
+            if (diff < TimeSpan.Zero)
+            {
+                // 已过期：显示已过去天数 + 到期状态，不再显示全 0。
+                DaysNumberText.Text = Math.Max(1, (int)Math.Ceiling(-diff.TotalDays)).ToString();
+                TimeText.Text = Strings.Due;
+            }
+            else
+            {
+                DaysNumberText.Text = diff.Days.ToString();
+                TimeText.Text = string.Format(Strings.TimeFormat, diff.Hours, diff.Minutes, diff.Seconds);
+            }
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -303,11 +337,6 @@ namespace CountdownDays
                 CapturePosition(_plugin.Config);
                 _plugin.SaveConfig();
             }
-        }
-
-        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            // Viewbox 自动缩放数字，无需额外代码。
         }
     }
 }

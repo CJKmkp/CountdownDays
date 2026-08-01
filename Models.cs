@@ -29,6 +29,7 @@ namespace CountdownDays
         public string TextColor { get; set; } = "#FFFFFF";
         public string AccentColor { get; set; } = "#C0FF9C";
         public string NotificationCenterId { get; set; } = "default";
+        public string SelectedEntryId { get; set; } = "";
         public List<string> NotifiedKeys { get; set; } = new List<string>();
     }
 }

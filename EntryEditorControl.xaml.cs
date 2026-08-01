@@ -13,6 +13,7 @@ namespace CountdownDays
             NoteLabel.Text = Strings.NoteLabel;
             KindLabelText.Text = Strings.KindLabel;
             TargetLabel.Text = Strings.TargetLabel;
+            TimeLabel.Text = Strings.TimeLabel;
             NotifyDaysLabelText.Text = Strings.NotifyDaysLabel;
             KindCombo.Items[0] = new ComboBoxItem { Content = Strings.KindCountdown };
             KindCombo.Items[1] = new ComboBoxItem { Content = Strings.KindAnniversary };
@@ -29,16 +30,23 @@ namespace CountdownDays
             NoteBox.Text = entry.Note;
             KindCombo.SelectedIndex = entry.Kind == CountdownKind.Anniversary ? 1 : 0;
             if (DateTimeOffset.TryParse(entry.TargetUtc, out var dt))
+            {
                 DatePicker.SelectedDate = dt.LocalDateTime;
+                TimeBox.Text = dt.LocalDateTime.ToString("HH:mm", CultureInfo.InvariantCulture);
+            }
             else
+            {
                 DatePicker.SelectedDate = DateTime.Now.AddDays(7);
+                TimeBox.Text = "00:00";
+            }
             NotifyDaysBox.Text = entry.NotifyDaysBefore.ToString(CultureInfo.InvariantCulture);
         }
 
         public CountdownEntry Capture(string id)
         {
             var selected = DatePicker.SelectedDate ?? DateTime.Now.AddDays(7);
-            var local = DateTime.SpecifyKind(selected.Date.Add(DateTime.Now.TimeOfDay), DateTimeKind.Local);
+            var time = ParseTime(TimeBox.Text);
+            var local = DateTime.SpecifyKind(selected.Date.Add(time), DateTimeKind.Local);
             var offset = TimeZoneInfo.Local.GetUtcOffset(local);
             var utc = new DateTimeOffset(local, offset);
 
@@ -51,6 +59,15 @@ namespace CountdownDays
                 Kind = KindCombo.SelectedIndex == 1 ? CountdownKind.Anniversary : CountdownKind.Countdown,
                 NotifyDaysBefore = int.TryParse(NotifyDaysBox.Text, out var days) ? Math.Max(0, days) : 7
             };
+        }
+
+        private static TimeSpan ParseTime(string text)
+        {
+            if (TimeSpan.TryParse(text?.Trim() ?? "", out var ts)
+                && ts >= TimeSpan.Zero
+                && ts < TimeSpan.FromDays(1))
+                return ts;
+            return TimeSpan.Zero;
         }
     }
 }

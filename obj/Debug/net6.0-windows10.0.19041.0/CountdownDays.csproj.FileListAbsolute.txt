@@ -20,3 +20,4 @@ e:\ICC CE\CountdownDays\bin\Debug\net6.0-windows10.0.19041.0\CountdownDays.dll
 e:\ICC CE\CountdownDays\bin\Debug\net6.0-windows10.0.19041.0\CountdownDays.pdb
 e:\ICC CE\CountdownDays\obj\Debug\net6.0-windows10.0.19041.0\ref\CountdownDays.dll
 E:\ICC CE\CountdownDays\obj\Debug\net6.0-windows10.0.19041.0\CountdownDays.sourcelink.json
+E:\ICC CE\CountdownDays\obj\Debug\net6.0-windows10.0.19041.0\CountdownDays_MarkupCompile.lref

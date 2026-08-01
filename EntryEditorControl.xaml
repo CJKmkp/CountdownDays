@@ -20,14 +20,19 @@
                        Margin="0,12,0,4"
                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
             <ComboBox x:Name="KindCombo" SelectedIndex="0">
-                <ComboBoxItem Content="倒计时"/>
-                <ComboBoxItem Content="纪念日"/>
+                <ComboBoxItem/>
+                <ComboBoxItem/>
             </ComboBox>
 
             <TextBlock x:Name="TargetLabel" FontWeight="SemiBold"
                        Margin="0,12,0,4"
                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
             <DatePicker x:Name="DatePicker"/>
+
+            <TextBlock x:Name="TimeLabel" FontWeight="SemiBold"
+                       Margin="0,12,0,4"
+                       Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+            <TextBox x:Name="TimeBox" Padding="8,6" Text="00:00"/>
 
             <TextBlock x:Name="NotifyDaysLabelText" FontWeight="SemiBold"
                        Margin="0,12,0,4"

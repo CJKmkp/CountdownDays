@@ -11,11 +11,15 @@ namespace CountdownDays
         public static string Add => IsEnglish ? "Add" : "添加";
         public static string Edit => IsEnglish ? "Edit" : "编辑";
         public static string Delete => IsEnglish ? "Delete" : "删除";
+        public static string Save => IsEnglish ? "Save" : "保存";
+        public static string Cancel => IsEnglish ? "Cancel" : "取消";
         public static string Settings => IsEnglish ? "Settings" : "设置";
         public static string ShowHide => IsEnglish ? "Show / Hide" : "显示 / 隐藏";
+        public static string ShowHideDesc => IsEnglish ? "Show / Hide the desktop widget" : "显示 / 隐藏桌面小窗口";
         public static string TitleLabel => IsEnglish ? "Title" : "标题";
         public static string NoteLabel => IsEnglish ? "Note" : "备注";
-        public static string TargetLabel => IsEnglish ? "Date & time" : "目标时间";
+        public static string TargetLabel => IsEnglish ? "Date" : "目标日期";
+        public static string TimeLabel => IsEnglish ? "Time (HH:mm)" : "目标时间 (HH:mm)";
         public static string KindLabel => IsEnglish ? "Type" : "类型";
         public static string KindCountdown => IsEnglish ? "Countdown" : "倒计时";
         public static string KindAnniversary => IsEnglish ? "Anniversary" : "纪念日";
@@ -34,8 +38,7 @@ namespace CountdownDays
         public static string IndexFooter => IsEnglish ? "{0} / {1}" : "第 {0} 个 / 共 {1} 个";
         public static string Prev => IsEnglish ? "Previous" : "上一个";
         public static string Next => IsEnglish ? "Next" : "下一个";
-        public static string Hide => IsEnglish ? "Hide" : "隐藏";
-        public static string Due => IsEnglish ? "Due" : "已到";
+        public static string Due => IsEnglish ? "Overdue" : "已到期";
         public static string UpcomingNotification(string title, int days) => IsEnglish
             ? $"{title}: due in {days} day(s)."
             : $"{title} 还有 {days} 天";
@@ -43,5 +46,20 @@ namespace CountdownDays
             ? $"{title} is today."
             : $"{title} 已经到来";
         public static string OpacityLabel => IsEnglish ? "Window opacity" : "窗口透明度";
+        public static string ScaleLabel => IsEnglish ? "UI scale" : "界面缩放";
+        public static string TextColorLabel => IsEnglish ? "Text color" : "文字颜色";
+        public static string AccentColorLabel => IsEnglish ? "Accent color" : "强调颜色";
+        public static string EntriesHeader => IsEnglish ? "Entries" : "目标列表";
+        public static string AddTitle => IsEnglish ? "Add entry" : "添加目标";
+        public static string EditTitle => IsEnglish ? "Edit entry" : "编辑目标";
+        public static string ConfirmDeleteTitle => IsEnglish ? "Confirm delete" : "确认删除";
+        public static string ConfirmDeleteMessage => IsEnglish ? "Delete this entry?" : "确定要删除这个目标吗？";
+        public static string Untitled => IsEnglish ? "Untitled" : "未命名目标";
+        public static string KindPrefixAnniversary => IsEnglish ? "Anniversary · " : "纪念日 · ";
+        public static string KindPrefixCountdown => IsEnglish ? "Countdown · " : "倒计时 · ";
+        public static string SeedTitle => IsEnglish ? "Sample anniversary" : "纪念日示例";
+        public static string SeedNote => IsEnglish ? "Edit or delete in plugin settings" : "可在插件设置中编辑或删除";
+        public static string LogInit => IsEnglish ? "Initializing..." : "正在初始化...";
+        public static string LogShutdown => IsEnglish ? "Stopped" : "已关闭";
     }
 }
