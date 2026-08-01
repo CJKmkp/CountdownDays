@@ -1,0 +1,19 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore: [ '**.md', 'LICENSE' ]
+  pull_request:
+    branches: [ main ]
+    paths-ignore: [ '**.md', 'LICENSE' ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: InkCanvasForClass/community/.github/workflows/plugin-build.yml@net6
+    with:
+      project: CountdownDays.csproj
+      plugin_id: com.icc.countdown-days
+      create_release: false
+    secrets: inherit
