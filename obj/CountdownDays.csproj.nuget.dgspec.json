@@ -52,6 +52,11 @@
           "framework": "net6.0-windows10.0.19041",
           "targetAlias": "net6.0-windows10.0.19041.0",
           "dependencies": {
+            "InkCanvas.PluginSdk": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.7.19.9-ga6fafad8a9, )"
+            },
             "Microsoft.Extensions.DependencyInjection": {
               "target": "Package",
               "version": "[6.0.0, )"

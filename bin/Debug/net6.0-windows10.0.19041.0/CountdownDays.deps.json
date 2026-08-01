@@ -8,6 +8,7 @@
     ".NETCoreApp,Version=v6.0": {
       "CountdownDays/1.0.0": {
         "dependencies": {
+          "InkCanvas.PluginSdk": "1.7.19.9-ga6fafad8a9",
           "Microsoft.Extensions.DependencyInjection": "6.0.0",
           "iNKORE.UI.WPF": "1.2.8",
           "iNKORE.UI.WPF.Modern": "0.10.2.1",
@@ -26,6 +27,17 @@
           "WinRT.Runtime.dll": {
             "assemblyVersion": "2.1.0.0",
             "fileVersion": "2.2.0.48161"
+          }
+        }
+      },
+      "InkCanvas.PluginSdk/1.7.19.9-ga6fafad8a9": {
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection": "6.0.0"
+        },
+        "runtime": {
+          "lib/net6.0-windows10.0.19041/InkCanvas.PluginSdk.dll": {
+            "assemblyVersion": "1.7.19.9",
+            "fileVersion": "1.7.19.9"
           }
         }
       },
@@ -83,6 +95,13 @@
       "type": "runtimepack",
       "serviceable": false,
       "sha512": ""
+    },
+    "InkCanvas.PluginSdk/1.7.19.9-ga6fafad8a9": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-jKQwPjvJFgHHxvU6KYq1h+C3jTVxY4N4ihNE4vRHnGjKn+Itm3XTQIjWge23s2UXQWQzfq+Hq0ttewbBTcuewQ==",
+      "path": "inkcanvas.pluginsdk/1.7.19.9-ga6fafad8a9",
+      "hashPath": "inkcanvas.pluginsdk.1.7.19.9-ga6fafad8a9.nupkg.sha512"
     },
     "iNKORE.UI.WPF/1.2.8": {
       "type": "package",

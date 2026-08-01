@@ -2,6 +2,28 @@
   "version": 4,
   "targets": {
     "net6.0-windows10.0.19041.0": {
+      "InkCanvas.PluginSdk/1.7.19.9-ga6fafad8a9": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection": "6.0.0"
+        },
+        "compile": {
+          "lib/net6.0-windows10.0.19041/InkCanvas.PluginSdk.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0-windows10.0.19041/InkCanvas.PluginSdk.dll": {
+            "related": ".xml"
+          }
+        },
+        "frameworkReferences": [
+          "Microsoft.WindowsDesktop.App.WPF"
+        ],
+        "build": {
+          "build/net6.0-windows10.0.19041.0/InkCanvas.PluginSdk.targets": {}
+        }
+      },
       "iNKORE.UI.WPF/1.2.8": {
         "type": "package",
         "compile": {
@@ -98,6 +120,20 @@
     }
   },
   "libraries": {
+    "InkCanvas.PluginSdk/1.7.19.9-ga6fafad8a9": {
+      "sha512": "jKQwPjvJFgHHxvU6KYq1h+C3jTVxY4N4ihNE4vRHnGjKn+Itm3XTQIjWge23s2UXQWQzfq+Hq0ttewbBTcuewQ==",
+      "type": "package",
+      "path": "inkcanvas.pluginsdk/1.7.19.9-ga6fafad8a9",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "build/net6.0-windows10.0.19041.0/InkCanvas.PluginSdk.targets",
+        "inkcanvas.pluginsdk.1.7.19.9-ga6fafad8a9.nupkg.sha512",
+        "inkcanvas.pluginsdk.nuspec",
+        "lib/net6.0-windows10.0.19041/InkCanvas.PluginSdk.dll",
+        "lib/net6.0-windows10.0.19041/InkCanvas.PluginSdk.xml"
+      ]
+    },
     "iNKORE.UI.WPF/1.2.8": {
       "sha512": "7b+z25JFdhGAfyJqlVIF0vLbmgsRvqDZMvhGPTz20gzQigDPMqVUOoCCKB5824GtYsjFCYNilmaowb+4yWATkQ==",
       "type": "package",
@@ -226,6 +262,7 @@
   },
   "projectFileDependencyGroups": {
     "net6.0-windows10.0.19041.0": [
+      "InkCanvas.PluginSdk >= 1.7.19.9-ga6fafad8a9",
       "Microsoft.Extensions.DependencyInjection >= 6.0.0",
       "iNKORE.UI.WPF >= 1.2.8",
       "iNKORE.UI.WPF.Modern >= 0.10.2.1"
@@ -238,11 +275,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "e:\\ICC CE\\CountdownDays\\CountdownDays.csproj",
+      "projectUniqueName": "E:\\ICC CE\\CountdownDays\\CountdownDays.csproj",
       "projectName": "CountdownDays",
-      "projectPath": "e:\\ICC CE\\CountdownDays\\CountdownDays.csproj",
+      "projectPath": "E:\\ICC CE\\CountdownDays\\CountdownDays.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "e:\\ICC CE\\CountdownDays\\obj\\",
+      "outputPath": "E:\\ICC CE\\CountdownDays\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "E:\\Program Files\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -283,6 +320,11 @@
         "framework": "net6.0-windows10.0.19041",
         "targetAlias": "net6.0-windows10.0.19041.0",
         "dependencies": {
+          "InkCanvas.PluginSdk": {
+            "suppressParent": "All",
+            "target": "Package",
+            "version": "[1.7.19.9-ga6fafad8a9, )"
+          },
           "Microsoft.Extensions.DependencyInjection": {
             "target": "Package",
             "version": "[6.0.0, )"
