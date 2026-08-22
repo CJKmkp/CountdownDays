@@ -51,6 +51,7 @@ namespace CountdownDays
         private const double LogicalHeight = 260;
         private readonly CountdownDaysPlugin _plugin;
         private readonly DispatcherTimer _tickTimer;
+        private readonly ScaleTransform _rootScaleTransform = new ScaleTransform(1, 1);
         private bool _positionRestored;
         private double _appliedScale = -1;
         private string _appliedTextColor;
@@ -60,6 +61,7 @@ namespace CountdownDays
         {
             InitializeComponent();
             _plugin = plugin;
+            RootBorder.RenderTransform = _rootScaleTransform;
             HeaderInitialize();
             ApplyTitles();
             _tickTimer = new DispatcherTimer(DispatcherPriority.Background)
@@ -191,7 +193,9 @@ namespace CountdownDays
 
         private void ApplyScale(double scale)
         {
-            // 窗口已加载时围绕当前中心点缩放，保证放大缩小不跑偏、不超出工作区。
+            // 根内容保持固定逻辑尺寸（LogicalWidth×LogicalHeight），以中心为原点做 RenderTransform 缩放；
+            // 窗口尺寸设为缩放后的足迹。两者精确相等，任何 scale 下内容都恰好填满窗口，
+            // 不会出现「内容变大 + 窗口也变大 + 根上加 LayoutTransform」这种双重缩放导致的空白/裁剪。
             if (IsLoaded && Width > 0)
             {
                 var centerX = Left + Width / 2;
@@ -211,7 +215,8 @@ namespace CountdownDays
                 Height = LogicalHeight * scale;
             }
 
-            RootBorder.LayoutTransform = new ScaleTransform(scale, scale);
+            _rootScaleTransform.ScaleX = scale;
+            _rootScaleTransform.ScaleY = scale;
         }
 
         private void SetColorResource(string key, string colorText, byte r, byte g, byte b)

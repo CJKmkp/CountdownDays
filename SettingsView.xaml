@@ -13,127 +13,178 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
-        <ikw:SimpleStackPanel Spacing="12" Margin="16">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ikw:SimpleStackPanel Spacing="4" Margin="16">
 
-            <Border CornerRadius="8" Padding="16"
-                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
-                <ikw:SimpleStackPanel Spacing="8">
-                    <TextBlock Text="{x:Static local:Strings.Title}" FontSize="14" FontWeight="SemiBold"/>
-                    <DockPanel>
-                        <TextBlock Text="{x:Static local:Strings.ShowHideDesc}" VerticalAlignment="Center"/>
-                        <Button x:Name="ToggleWindowButton" Content="{x:Static local:Strings.ShowHide}" Padding="12,4"
-                                Click="ToggleWindowButton_Click" HorizontalAlignment="Right"/>
-                    </DockPanel>
-                    <DockPanel>
-                        <TextBlock Text="{x:Static local:Strings.OpacityLabel}" VerticalAlignment="Center"/>
+                <TextBlock Text="{x:Static local:Strings.Title}"
+                           FontSize="18" FontWeight="SemiBold" Margin="4,0,0,12"/>
+
+                <!-- 外观 -->
+                <ui:SettingsCard Header="{x:Static local:Strings.ShowHideDesc}">
+                    <ui:SettingsCard.HeaderIcon>
+                        <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.BackToWindow}" FontSize="16"/>
+                    </ui:SettingsCard.HeaderIcon>
+                    <Button x:Name="ToggleWindowButton" Content="{x:Static local:Strings.ShowHide}"
+                               Padding="16,7" MinWidth="132" Click="ToggleWindowButton_Click"/>
+                </ui:SettingsCard>
+
+                <ui:SettingsCard Header="{x:Static local:Strings.OpacityLabel}"
+                                 Description="{x:Static local:Strings.OpacityDescription}">
+                    <ui:SettingsCard.HeaderIcon>
+                        <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Brightness}" FontSize="16"/>
+                    </ui:SettingsCard.HeaderIcon>
+                    <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="10">
                         <Slider x:Name="OpacitySlider" Minimum="40" Maximum="100" SmallChange="5" LargeChange="10"
-                                Width="180" HorizontalAlignment="Right" ValueChanged="OpacitySlider_ValueChanged"/>
-                    </DockPanel>
-                    <DockPanel>
-                        <TextBlock Text="{x:Static local:Strings.ScaleLabel}" VerticalAlignment="Center"/>
-                        <Slider x:Name="ScaleSlider" Minimum="0.5" Maximum="2.0" SmallChange="0.1" LargeChange="0.2"
-                                Width="180" HorizontalAlignment="Right" ValueChanged="ScaleSlider_ValueChanged"/>
-                    </DockPanel>
-                    <DockPanel>
-                        <TextBlock Text="{x:Static local:Strings.TextColorLabel}" VerticalAlignment="Center"/>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" DockPanel.Dock="Right">
-                            <Border x:Name="TextColorPreview" Width="28" Height="20" CornerRadius="4"
-                                    Background="#FFFFFF" BorderBrush="#33FFFFFF" BorderThickness="1"
-                                    Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBox x:Name="TextColorBox" Width="120" Padding="6,4"
-                                     LostFocus="TextColorBox_LostFocus" KeyDown="TextColorBox_KeyDown"/>
-                        </StackPanel>
-                    </DockPanel>
-                    <DockPanel>
-                        <TextBlock Text="{x:Static local:Strings.AccentColorLabel}" VerticalAlignment="Center"/>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" DockPanel.Dock="Right">
-                            <Border x:Name="AccentColorPreview" Width="28" Height="20" CornerRadius="4"
-                                    Background="#C0FF9C" BorderBrush="#33FFFFFF" BorderThickness="1"
-                                    Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBox x:Name="AccentColorBox" Width="120" Padding="6,4"
-                                     LostFocus="AccentColorBox_LostFocus" KeyDown="AccentColorBox_KeyDown"/>
-                        </StackPanel>
-                    </DockPanel>
-                </ikw:SimpleStackPanel>
-            </Border>
+                                Width="170" ValueChanged="OpacitySlider_ValueChanged"/>
+                        <TextBlock x:Name="OpacityValueText" Width="42" TextAlignment="Right"
+                                   VerticalAlignment="Center" FontFamily="Consolas" Opacity="0.8"/>
+                    </ikw:SimpleStackPanel>
+                </ui:SettingsCard>
 
-            <Border CornerRadius="8" Padding="16"
-                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
-                <ikw:SimpleStackPanel Spacing="8">
-                    <DockPanel>
-                        <TextBlock Text="{x:Static local:Strings.EntriesHeader}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
-                            <Button x:Name="AddButton" Content="{x:Static local:Strings.Add}" Padding="10,4" Margin="0,0,4,0" Click="AddButton_Click"/>
-                            <Button x:Name="EditButton" Content="{x:Static local:Strings.Edit}" Padding="10,4" Margin="0,0,4,0" Click="EditButton_Click"/>
-                            <Button x:Name="DeleteButton" Content="{x:Static local:Strings.Delete}" Padding="10,4" Click="DeleteButton_Click"/>
-                        </StackPanel>
-                    </DockPanel>
-                    <ui:ListView x:Name="EntriesList"
-                                 HorizontalContentAlignment="Stretch"
-                                 MaxHeight="320"
-                                 BorderThickness="0"
-                                 Background="Transparent"
-                                 SelectionChanged="EntriesList_SelectionChanged">
-                        <ui:ListView.Template>
-                            <ControlTemplate TargetType="ui:ListView">
-                                <Border Background="{TemplateBinding Background}"
-                                        BorderBrush="{TemplateBinding BorderBrush}"
-                                        BorderThickness="{TemplateBinding BorderThickness}">
-                                    <ScrollViewer HorizontalScrollBarVisibility="Disabled"
-                                                  VerticalScrollBarVisibility="Auto">
-                                        <ItemsPresenter HorizontalAlignment="Stretch" />
-                                    </ScrollViewer>
-                                </Border>
-                            </ControlTemplate>
-                        </ui:ListView.Template>
-                        <ui:ListView.ItemContainerStyle>
-                            <Style TargetType="ui:ListViewItem">
-                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                                <Setter Property="Padding" Value="0" />
-                                <Setter Property="MinHeight" Value="36" />
-                            </Style>
-                        </ui:ListView.ItemContainerStyle>
-                        <ui:ListView.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel />
-                            </ItemsPanelTemplate>
-                        </ui:ListView.ItemsPanel>
-                        <ui:ListView.ItemTemplate>
-                            <DataTemplate>
-                                <Border Padding="12" Margin="4" CornerRadius="8">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <ui:FontIcon Grid.Column="0"
-                                                     Width="28" Height="28"
-                                                     Margin="0,2,10,0"
-                                                     Icon="{x:Static ui:SegoeFluentIcons.Calendar}"
-                                                     Opacity="0.85"/>
-                                        <StackPanel Grid.Column="1">
-                                            <TextBlock Text="{Binding Title}"
-                                                       FontWeight="SemiBold"
-                                                       TextTrimming="CharacterEllipsis"
-                                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
-                                            <TextBlock Text="{Binding SubText}"
-                                                       Margin="0,5,0,0"
-                                                       MaxHeight="42"
-                                                       TextWrapping="Wrap"
-                                                       TextTrimming="CharacterEllipsis"
-                                                       Opacity="0.76"
-                                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ui:ListView.ItemTemplate>
-                    </ui:ListView>
-                </ikw:SimpleStackPanel>
-            </Border>
+                <ui:SettingsCard Header="{x:Static local:Strings.ScaleLabel}"
+                                 Description="{x:Static local:Strings.ScaleDescription}">
+                    <ui:SettingsCard.HeaderIcon>
+                        <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Zoom}" FontSize="16"/>
+                    </ui:SettingsCard.HeaderIcon>
+                    <ikw:SimpleStackPanel Orientation="Horizontal" Spacing="10">
+                        <Slider x:Name="ScaleSlider" Minimum="0.5" Maximum="2.0" SmallChange="0.05" LargeChange="0.2"
+                                TickFrequency="0.1" Width="170" ValueChanged="ScaleSlider_ValueChanged"/>
+                        <TextBlock x:Name="ScaleValueText" Width="42" TextAlignment="Right"
+                                   VerticalAlignment="Center" FontFamily="Consolas" Opacity="0.8"/>
+                    </ikw:SimpleStackPanel>
+                </ui:SettingsCard>
 
-        </ikw:SimpleStackPanel>
+                <ui:SettingsCard Header="{x:Static local:Strings.TextColorLabel}"
+                                 Description="{x:Static local:Strings.TextColorDescription}">
+                    <ui:SettingsCard.HeaderIcon>
+                        <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.FontColor}" FontSize="16"/>
+                    </ui:SettingsCard.HeaderIcon>
+                    <Button x:Name="TextColorButton" Padding="12,7" MinWidth="150" Click="TextColorButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Border x:Name="TextColorSwatch" Width="26" Height="18" CornerRadius="4"
+                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1"
+                                    Background="#FFFFFF" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="TextColorText" Margin="10,0,8,0" VerticalAlignment="Center" FontFamily="Consolas"/>
+                            <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.ChevronDownSmall}" FontSize="10"
+                                         Opacity="0.7" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </ui:SettingsCard>
+
+                <ui:SettingsCard Header="{x:Static local:Strings.AccentColorLabel}"
+                                 Description="{x:Static local:Strings.AccentColorDescription}">
+                    <ui:SettingsCard.HeaderIcon>
+                        <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Color}" FontSize="16"/>
+                    </ui:SettingsCard.HeaderIcon>
+                    <Button x:Name="AccentColorButton" Padding="12,7" MinWidth="150" Click="AccentColorButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Border x:Name="AccentColorSwatch" Width="26" Height="18" CornerRadius="4"
+                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1"
+                                    Background="#C0FF9C" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="AccentColorText" Margin="10,0,8,0" VerticalAlignment="Center" FontFamily="Consolas"/>
+                            <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.ChevronDownSmall}" FontSize="10"
+                                         Opacity="0.7" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </ui:SettingsCard>
+
+                <!-- 目标列表 -->
+                <TextBlock Text="{x:Static local:Strings.EntriesHeader}"
+                           FontSize="16" FontWeight="SemiBold" Margin="4,18,0,6"/>
+
+                <Border CornerRadius="{DynamicResource ControlCornerRadius}"
+                        Background="{DynamicResource SettingsCardBackground}"
+                        BorderBrush="{DynamicResource SettingsCardBorderBrush}"
+                        BorderThickness="{DynamicResource SettingsCardBorderThickness}"
+                        Padding="{DynamicResource SettingsCardPadding}">
+                    <ikw:SimpleStackPanel Spacing="8">
+                        <DockPanel>
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                                <Button x:Name="AddButton" Content="{x:Static local:Strings.Add}"
+                                           Padding="14,7" Margin="0,0,6,0" Click="AddButton_Click"/>
+                                <Button x:Name="EditButton" Content="{x:Static local:Strings.Edit}"
+                                           Padding="14,7" Margin="0,0,6,0" Click="EditButton_Click"/>
+                                <Button x:Name="DeleteButton" Content="{x:Static local:Strings.Delete}"
+                                           Padding="14,7" Click="DeleteButton_Click"/>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <Grid>
+                            <ui:ListView x:Name="EntriesList"
+                                         HorizontalContentAlignment="Stretch"
+                                         MaxHeight="320"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         SelectionChanged="EntriesList_SelectionChanged">
+                                <ui:ListView.Template>
+                                    <ControlTemplate TargetType="ui:ListView">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}">
+                                            <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                                                          VerticalScrollBarVisibility="Auto">
+                                                <ItemsPresenter HorizontalAlignment="Stretch" />
+                                            </ScrollViewer>
+                                        </Border>
+                                    </ControlTemplate>
+                                </ui:ListView.Template>
+                                <ui:ListView.ItemContainerStyle>
+                                    <Style TargetType="ui:ListViewItem">
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                        <Setter Property="Padding" Value="0" />
+                                        <Setter Property="MinHeight" Value="36" />
+                                    </Style>
+                                </ui:ListView.ItemContainerStyle>
+                                <ui:ListView.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel />
+                                    </ItemsPanelTemplate>
+                                </ui:ListView.ItemsPanel>
+                                <ui:ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Padding="12" Margin="4" CornerRadius="8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <ui:FontIcon Grid.Column="0"
+                                                             Width="28" Height="28"
+                                                             Margin="0,2,10,0"
+                                                             Icon="{x:Static ui:SegoeFluentIcons.Calendar}"
+                                                             Opacity="0.85"/>
+                                                <StackPanel Grid.Column="1">
+                                                    <TextBlock Text="{Binding Title}"
+                                                               FontWeight="SemiBold"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                    <TextBlock Text="{Binding SubText}"
+                                                               Margin="0,5,0,0"
+                                                               MaxHeight="42"
+                                                               TextWrapping="Wrap"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Opacity="0.76"
+                                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ui:ListView.ItemTemplate>
+                            </ui:ListView>
+
+                            <StackPanel x:Name="EmptyHint" Visibility="Collapsed"
+                                        IsHitTestVisible="False"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <ui:FontIcon Icon="{x:Static ui:SegoeFluentIcons.Calendar}"
+                                             FontSize="34" Opacity="0.35" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                <TextBlock Text="{x:Static local:Strings.Empty}" Opacity="0.55"
+                                           HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+                    </ikw:SimpleStackPanel>
+                </Border>
+
+            </ikw:SimpleStackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

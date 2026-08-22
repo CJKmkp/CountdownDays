@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using iNKORE.UI.WPF.Modern.Controls;
 
 namespace CountdownDays
@@ -20,10 +21,9 @@ namespace CountdownDays
             _isInitializing = true;
             OpacitySlider.Value = plugin.Config.WindowOpacity > 0 ? plugin.Config.WindowOpacity : 90;
             ScaleSlider.Value = plugin.Config.UiScale > 0 ? plugin.Config.UiScale : 1.0;
-            TextColorBox.Text = string.IsNullOrEmpty(plugin.Config.TextColor) ? "#FFFFFF" : plugin.Config.TextColor;
-            AccentColorBox.Text = string.IsNullOrEmpty(plugin.Config.AccentColor) ? "#C0FF9C" : plugin.Config.AccentColor;
-            UpdateColorPreview(TextColorBox.Text, TextColorPreview);
-            UpdateColorPreview(AccentColorBox.Text, AccentColorPreview);
+            UpdateColorButton(TextColorSwatch, TextColorText, ReadColor(plugin.Config.TextColor, Colors.White));
+            UpdateColorButton(AccentColorSwatch, AccentColorText,
+                ReadColor(plugin.Config.AccentColor, Color.FromRgb(0xC0, 0xFF, 0x9C)));
             RefreshList();
             _isInitializing = false;
         }
@@ -35,66 +35,80 @@ namespace CountdownDays
             public string SubText { get; set; }
         }
 
-        private static bool TryParseColor(string text, out System.Windows.Media.Color color)
+        // ---------------- 取色器 ----------------
+
+        private async void TextColorButton_Click(object sender, RoutedEventArgs e)
         {
+            var initial = ReadColor(_plugin.Config.TextColor, Colors.White);
+            var picked = await ColorPickerDialog.PickAsync(Strings.TextColorLabel, initial, fallback: Colors.White);
+            if (picked == null) return;
+            var color = picked.Value;
+            _plugin.Config.TextColor = ColorFormat.ToHex(color);
+            UpdateColorButton(TextColorSwatch, TextColorText, color);
+            _plugin.SaveConfig();
+            _plugin.Refresh();
+        }
+
+        private async void AccentColorButton_Click(object sender, RoutedEventArgs e)
+        {
+            var fallback = Color.FromRgb(0xC0, 0xFF, 0x9C);
+            var initial = ReadColor(_plugin.Config.AccentColor, fallback);
+            var picked = await ColorPickerDialog.PickAsync(Strings.AccentColorLabel, initial, fallback: fallback);
+            if (picked == null) return;
+            var color = picked.Value;
+            _plugin.Config.AccentColor = ColorFormat.ToHex(color);
+            UpdateColorButton(AccentColorSwatch, AccentColorText, color);
+            _plugin.SaveConfig();
+            _plugin.Refresh();
+        }
+
+        private static Color ReadColor(string text, Color fallback)
+        {
+            if (ColorFormat.TryParseHex(text, out var color)) return color;
             try
             {
-                color = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(text);
-                return true;
+                return (Color)ColorConverter.ConvertFromString(text);
             }
             catch
             {
-                color = System.Windows.Media.Colors.White;
-                return false;
+                return fallback;
             }
         }
 
-        private static void UpdateColorPreview(string text, System.Windows.Controls.Border preview)
+        private static void UpdateColorButton(Border swatch, TextBlock label, Color color)
         {
-            if (TryParseColor(text, out var color))
-            {
-                preview.Background = new System.Windows.Media.SolidColorBrush(color);
-            }
+            swatch.Background = new SolidColorBrush(color);
+            label.Text = ColorFormat.ToHex(color);
         }
 
-        private void TextColorBox_LostFocus(object sender, RoutedEventArgs e) => ApplyTextColor();
-        private void TextColorBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            if (e.Key == System.Windows.Input.Key.Enter) ApplyTextColor();
-        }
+        // ---------------- 滑块 ----------------
 
-        private void ApplyTextColor()
+        private void OpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            var text = TextColorBox.Text?.Trim() ?? "";
-            if (!TryParseColor(text, out _)) return;
-            _plugin.Config.TextColor = text;
-            UpdateColorPreview(text, TextColorPreview);
+            OpacityValueText.Text = $"{OpacitySlider.Value:0}%";
+            if (_plugin == null || _isInitializing) return;
+            _plugin.Config.WindowOpacity = (int)OpacitySlider.Value;
             _plugin.SaveConfig();
             _plugin.Refresh();
         }
 
-        private void AccentColorBox_LostFocus(object sender, RoutedEventArgs e) => ApplyAccentColor();
-        private void AccentColorBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void ScaleSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (e.Key == System.Windows.Input.Key.Enter) ApplyAccentColor();
-        }
-
-        private void ApplyAccentColor()
-        {
-            var text = AccentColorBox.Text?.Trim() ?? "";
-            if (!TryParseColor(text, out _)) return;
-            _plugin.Config.AccentColor = text;
-            UpdateColorPreview(text, AccentColorPreview);
+            ScaleValueText.Text = $"{ScaleSlider.Value * 100:0}%";
+            if (_plugin == null || _isInitializing) return;
+            _plugin.Config.UiScale = Math.Round(ScaleSlider.Value, 2);
             _plugin.SaveConfig();
             _plugin.Refresh();
         }
+
+        // ---------------- 目标列表 ----------------
 
         private void RefreshList()
         {
             _isUpdatingSelection = true;
             try
             {
-                EntriesList.ItemsSource = _plugin.Config.Entries
+                var items = _plugin.Config.Entries
                     .Where(entry => entry != null && !string.IsNullOrWhiteSpace(entry.Id))
                     .Select(entry =>
                     {
@@ -113,6 +127,9 @@ namespace CountdownDays
                         };
                     })
                     .ToList();
+
+                EntriesList.ItemsSource = items;
+                EmptyHint.Visibility = items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
                 // 恢复当前选中的目标，让桌面窗口与列表选中保持一致。
                 var selected = EntriesList.Items
@@ -139,22 +156,6 @@ namespace CountdownDays
         private void ToggleWindowButton_Click(object sender, RoutedEventArgs e)
         {
             _plugin.ToggleDesktopWindow();
-        }
-
-        private void OpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (_plugin == null || _isInitializing) return;
-            _plugin.Config.WindowOpacity = (int)OpacitySlider.Value;
-            _plugin.SaveConfig();
-            _plugin.Refresh();
-        }
-
-        private void ScaleSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (_plugin == null || _isInitializing) return;
-            _plugin.Config.UiScale = Math.Round(ScaleSlider.Value, 2);
-            _plugin.SaveConfig();
-            _plugin.Refresh();
         }
 
         private async void AddButton_Click(object sender, RoutedEventArgs e)

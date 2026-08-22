@@ -49,6 +49,13 @@ namespace CountdownDays
         public static string ScaleLabel => IsEnglish ? "UI scale" : "界面缩放";
         public static string TextColorLabel => IsEnglish ? "Text color" : "文字颜色";
         public static string AccentColorLabel => IsEnglish ? "Accent color" : "强调颜色";
+        public static string OpacityDescription => IsEnglish ? "Opacity of the desktop widget" : "桌面小窗口的透明程度";
+        public static string ScaleDescription => IsEnglish ? "Scales the whole widget, keeping its layout intact" : "整体缩放桌面小窗口，布局不变形";
+        public static string TextColorDescription => IsEnglish ? "Main text color of the countdown" : "倒计时主体文字的颜色";
+        public static string AccentColorDescription => IsEnglish ? "Color of the day / time unit labels" : "天 / 时分秒单位标签的颜色";
+        public static string Reset => IsEnglish ? "Reset" : "恢复默认";
+        public static string Hex => IsEnglish ? "HEX" : "HEX";
+        public static string ColorPickerPresets => IsEnglish ? "Preset colors" : "预设颜色";
         public static string EntriesHeader => IsEnglish ? "Entries" : "目标列表";
         public static string AddTitle => IsEnglish ? "Add entry" : "添加目标";
         public static string EditTitle => IsEnglish ? "Edit entry" : "编辑目标";
