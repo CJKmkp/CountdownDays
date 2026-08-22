@@ -1,6 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
-<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
-    <Import Project="$(NuGetPackageRoot)inkcanvas.pluginsdk\1.7.19.9-ga6fafad8a9\build\net6.0-windows10.0.19041.0\InkCanvas.PluginSdk.targets" Condition="Exists('$(NuGetPackageRoot)inkcanvas.pluginsdk\1.7.19.9-ga6fafad8a9\build\net6.0-windows10.0.19041.0\InkCanvas.PluginSdk.targets')" />
-  </ImportGroup>
-</Project>
