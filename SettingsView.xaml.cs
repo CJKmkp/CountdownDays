@@ -21,6 +21,8 @@ namespace CountdownDays
             _isInitializing = true;
             OpacitySlider.Value = plugin.Config.WindowOpacity > 0 ? plugin.Config.WindowOpacity : 90;
             ScaleSlider.Value = plugin.Config.UiScale > 0 ? plugin.Config.UiScale : 1.0;
+            OpacityValueText.Text = $"{OpacitySlider.Value:0}%";
+            ScaleValueText.Text = $"{ScaleSlider.Value * 100:0}%";
             UpdateColorButton(TextColorSwatch, TextColorText, ReadColor(plugin.Config.TextColor, Colors.White));
             UpdateColorButton(AccentColorSwatch, AccentColorText,
                 ReadColor(plugin.Config.AccentColor, Color.FromRgb(0xC0, 0xFF, 0x9C)));
@@ -85,18 +87,23 @@ namespace CountdownDays
 
         private void OpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            OpacityValueText.Text = $"{OpacitySlider.Value:0}%";
+            // XAML can raise this while the slider is being initialized, before the
+            // value label has been created.
+            if (OpacityValueText != null)
+                OpacityValueText.Text = $"{e.NewValue:0}%";
             if (_plugin == null || _isInitializing) return;
-            _plugin.Config.WindowOpacity = (int)OpacitySlider.Value;
+            _plugin.Config.WindowOpacity = (int)e.NewValue;
             _plugin.SaveConfig();
             _plugin.Refresh();
         }
 
         private void ScaleSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            ScaleValueText.Text = $"{ScaleSlider.Value * 100:0}%";
+            // Keep this safe during XAML construction for the same reason as opacity.
+            if (ScaleValueText != null)
+                ScaleValueText.Text = $"{e.NewValue * 100:0}%";
             if (_plugin == null || _isInitializing) return;
-            _plugin.Config.UiScale = Math.Round(ScaleSlider.Value, 2);
+            _plugin.Config.UiScale = Math.Round(e.NewValue, 2);
             _plugin.SaveConfig();
             _plugin.Refresh();
         }
